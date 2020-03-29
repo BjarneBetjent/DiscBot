@@ -17,40 +17,16 @@ client.once('ready', () =>
     retriveUsers();
 });
 
-/* function addUser(userID, userName)
-{
-    var s = { id: userID, username: userName };
-    fs.readFile("./pmlist.json", function (err, data)
-    {
-        if (err) throw err;
-        if (!(data.length > 0))
-        {
-            var jstring = "[" + JSON.stringify(s) + "]";
-            fs.writeFile("./pmlist.json", jstring, function (err)
-            {
-                if (err) throw err;
-            });
-        }
-        else
-        {
-            var json = JSON.parse(data);
-            json.push(s);
-            fs.writeFile("./pmlist.json", JSON.stringify(json, null, 2), function (err)
-            {
-                if (err) throw err;
-            });
-        }
-    });
-} */
-
+//Update the JSON file when a user have subbed or unsubbed
 function updatePMList()
 {
-    fs.writeFile("./pmlist.json", JSON.stringify(userArray, null, 2), function(err)
+    fs.writeFile("./pmlist.json", JSON.stringify(userArray, null, 2), function (err)
     {
-        if(err) throw err;
+        if (err) throw err;
     });
 }
 
+//Get all the users form the JSON file upon bot startup
 function retriveUsers()
 {
     fs.readFile("./pmlist.json", function (err, data) 
@@ -58,33 +34,17 @@ function retriveUsers()
         if (!(data.length > 0)) return;
         else
         {
-           userArray = JSON.parse(data);
+            var dataArray = JSON.parse(data);
+            for (var i = 0; i < dataArray.length; i++)
+            {
+                userArray.push(new Discord.User(client, dataArray[i]));
+            }
         }
     });
 }
 
-/* function retriveUsers() 
-{
-    fs.readFile("./pmlist.json", function (err, data) 
-    {
-        if (!(data.length > 0)) return;
-        else
-        {
-            var pmList = JSON.parse(fs.readFileSync("./pmlist.json"));
-            pmList.forEach(user => 
-            {
-                client.users.fetch(user.id).then((result) => 
-                {
-                    userArray.push(result);
-                }).catch((error) =>
-                {
-                    console.log("Un-Nice " + error);
-                })
-            });
-        }
-    });
-} */
-
+//Check if a new file has been created in the given directory
+//If a file has been created, delete it
 function checkNewFile()
 {
     fs.readdir(dirPath, function (err, files)
@@ -114,15 +74,23 @@ function checkNewFile()
 
 client.on('message', message =>
 {
+    var isSubbed = false, index;
+    for (var i = 0; i < userArray.length; i++)
+    {
+        if (message.author.id == userArray[i].id)
+        {
+            isSubbed = true;
+            index = i;
+        }
+    }
+
     if (message.content == "!sub")
     {
-        if (!userArray.includes(message.author))
+        if (!isSubbed) 
         {
             message.channel.send(message.author.username + " will recieve PM");
             userArray.push(message.author);
-            //addUser(message.author.id, message.author.username);
             updatePMList();
-
         }
         else message.channel.send(message.author.username + " is already subbed!");
     }
@@ -143,20 +111,14 @@ client.on('message', message =>
     }
     else if (message.content == "!unsub")
     {
-        var exists = false;
-        for (var i = 0; i < userArray.length; i++)
+        if (isSubbed)
         {
-            if (message.author === userArray[i])
-            {
-                userArray.splice(i, 1);
-                message.channel.send(message.author.username + " will no longer reviece PMs");
-                exists = true;
-                updatePMList();
-            }
+            userArray.splice(index, 1);
+            message.channel.send(message.author.username + " will no longer reviece PMs");
+            updatePMList();
         }
-        if(!exists) message.channel.send(message.author.username + " is not subbed");
+        else message.channel.send(message.author.username + " is not subbed");
     }
 });
 
-//Login to discord with your token
 client.login(config.token);

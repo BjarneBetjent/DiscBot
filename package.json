@@ -1,0 +1,19 @@
+{
+  "name": "PMern",
+  "version": "1.0.0",
+  "description": "Sends PM when new UOS snapshot is taken",
+  "main": "index.js",
+  "author": "Your Name",
+  "dependencies": {
+    "discord.io": "https://github.com/woor/discord.io/tarball/gateway_v6",
+    "discord.js": "^12.0.2",
+    "promise": "^8.1.0",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "license": "ISC"
+}
